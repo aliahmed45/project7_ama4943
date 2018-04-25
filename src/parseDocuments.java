@@ -22,13 +22,17 @@ public class parseDocuments {
     public parseDocuments() {
 
 
-        try (Stream<Path> paths = Files.walk(Paths.get("/Users/Ali/Desktop/UT Austin/EE 442C/project7_ama4943/src/sm_doc_set"))){//"/Users/Ali/Desktop/UT Austin/EE 422C/project7_ama4943/src/sm_doc_set/"))) {
+        try (Stream<Path> paths = Files.walk(Paths.get("/Users/Ali/Desktop/UT Austin/EE 442C/project7_ama4943/src/sample_fold"))){
 //            paths.filter(Files::isRegularFile).forEach(System.out::println);
             paths.filter(Files::isRegularFile).forEach(x -> folder.add(x));
 
         }catch(Exception e){ e.printStackTrace(); }
         for(int i = 0; i< 2; i++){
-            createDictionary();
+            try {
+                createDictionary();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         /*
         while(!folder.isEmpty()) {
@@ -66,7 +70,12 @@ public class parseDocuments {
             buffer.add(z, str);
         }
         dictionary.addAll(buffer);
-
+        String str = null;
+        while((str = input.readLine()) != null){
+            dictPlus.put(buffer.remove(0), buffer);
+            buffer.add(str);
+            System.out.println(buffer);
+        }
         /**
         while(scanner.hasNext()){
             String str = buffer.remove(0);
@@ -76,7 +85,7 @@ public class parseDocuments {
         }
         */
         if(buffer.size()==N){
-            String str = buffer.remove(0);
+            str = buffer.remove(0);
             dictPlus.put(str, buffer);
         }
         System.out.println("--------------------------------------------------------------");
