@@ -1,5 +1,5 @@
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
+
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,29 +37,44 @@ public class parseDocuments {
         */
     }
 
-    public void createDictionary(){
+    public void createDictionary() throws IOException {
         ArrayList<String> buffer = new ArrayList<>(N);
         HashMap<String, ArrayList<String>> dictPlus = new HashMap<>();
         File file = null;
         try {file = new File(folder.remove(0).toString());}
         catch(Exception e){ e.printStackTrace(); }
 
+        BufferedReader input = null;
+        try{input = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
+        } catch(FileNotFoundException e){
+            e.printStackTrace();
+        } catch(UnsupportedEncodingException e){
+            e.printStackTrace();
+        }
+
+        String sted = input.readLine();
+
+        /*
         Scanner scanner = null;
         try { scanner = new Scanner(file).useDelimiter(",|\\s|\\.");
         } catch (FileNotFoundException e) { System.out.println("Messed Up"); e.printStackTrace(); }
-
+        */
 
         for(int z = 0; (z < N) /*&& scanner.hasNext()*/; z++){
-            String str = scanner.next().toLowerCase();
+            String str = input.readLine();
+            //String str = scanner.next().toLowerCase();
             buffer.add(z, str);
         }
         dictionary.addAll(buffer);
+
+        /**
         while(scanner.hasNext()){
             String str = buffer.remove(0);
             dictPlus.put(str, buffer);
             buffer.add(scanner.next());
             System.out.println(buffer);
         }
+        */
         if(buffer.size()==N){
             String str = buffer.remove(0);
             dictPlus.put(str, buffer);
@@ -69,7 +84,7 @@ public class parseDocuments {
         System.out.println("--------------------------------------------------------------");
         //System.out.println(dictPlus);
         printMap(dictPlus);
-        scanner.close();
+        //scanner.close();
     }
 
     public static void printMap(HashMap mp) {
