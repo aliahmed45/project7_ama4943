@@ -1,9 +1,10 @@
 public class outputCell implements Comparable<outputCell> {
-    public String name1 = null;
-    public String name2 = null;
-    public Integer samePhraseCount = new Integer(0);
+    private Integer name1 = null;
+    private Integer name2 = null;
+    private Integer samePhraseCount = 0;
 
-    public outputCell(String firstFile, String secondFile, int phraseCopied){
+
+    public outputCell(Integer firstFile, Integer secondFile, int phraseCopied){
         this.name1 = firstFile;
         this.name2 = secondFile;
         this.samePhraseCount = phraseCopied;
@@ -11,10 +12,8 @@ public class outputCell implements Comparable<outputCell> {
 
 
     @Override
-    public int compareTo(outputCell a){
-        if(samePhraseCount > a.samePhraseCount){
-            return this.samePhraseCount;
-        }else {return a.samePhraseCount;}
+    public int compareTo(outputCell compareCell){
+        return this.samePhraseCount - compareCell.samePhraseCount;
     }
 
     @Override

@@ -6,14 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.stream.Stream;
-import java.util.Iterator;
-
-import java.util.Collections;
 
 
 public class parseDocuments {
@@ -21,12 +15,16 @@ public class parseDocuments {
     private ArrayList<Path> folder = new ArrayList<>();
     private HashSet<String> dictionary = new HashSet<>();
     private HashMap<String,ArrayList<Integer>> dic = new HashMap<>();
+    private HashMap<Integer, ArrayList<Integer>> topCheaters = new HashMap<>();
+
     private int fileIndex = 0;
     private int N = 0;
     private boolean DEBUG = false;
 
+    private int numFiles = 0;
     private int[][] matrix = null;
     private int topNum = 4;
+    private int min = 0;
 
     /**
      * Constructor
@@ -42,7 +40,8 @@ public class parseDocuments {
             paths.filter(Files::isRegularFile).forEach(x -> folder.add(x));
         }catch(Exception e){ e.printStackTrace(); }
 
-        int numFiles = folder.size();
+
+        numFiles = folder.size();
         matrix = new int[numFiles][numFiles];
         while (!folder.isEmpty()) {
             createDictionary();
@@ -50,6 +49,19 @@ public class parseDocuments {
         System.out.println("Processing Finished");
         compareDictionaries();
 
+        /*
+        System.out.println("Top Cheaters are:");
+        Iterator it = topCheaters.entrySet().iterator();
+
+        while(it.hasNext()){
+            HashMap.Entry key = (HashMap.Entry)it.next();
+            String name1 = dictAllFiles.get(((ArrayList<Integer>)key.getValue()).get(0)).get("SK_fileName").get(0);
+            String name2 = dictAllFiles.get(((ArrayList<Integer>)key.getValue()).get(1)).get("SK_fileName").get(0);
+            System.out.println(name1 + ":" + name2 + " " + key.getKey().toString());
+        }
+        */
+
+        findTopCheaters();
     }
 
     /**
@@ -166,6 +178,9 @@ public class parseDocuments {
         scanner.close();
     }
 
+
+    int iterations = 0;
+
     /**
      *
      */
@@ -182,7 +197,7 @@ public class parseDocuments {
 
                 dic.put((String)firstWord.getKey(), filesToLookThrough);
 
-                if(filesToLookThrough.isEmpty() || firstWord.getKey().equals("SK_filename") || firstWord.getKey().equals("the")){
+                if(filesToLookThrough.isEmpty() || firstWord.getKey().equals("SK_filename") ){// || firstWord.getKey().equals("the")){
                     continue;
                 }else{
                     for(int ind = 0; ind < filesToLookThrough.size(); ind++) {
@@ -190,7 +205,7 @@ public class parseDocuments {
                         if(secondDictIndex==firstDictIndex){
                             continue;
                         }
-                        String name2 = dictAllFiles.get(secondDictIndex).get("SK_fileName").get(0);
+                        //String name2 = dictAllFiles.get(secondDictIndex).get("SK_fileName").get(0);
 
                         int currentPhraseCopied = matrix[firstDictIndex][secondDictIndex];
 
@@ -202,9 +217,8 @@ public class parseDocuments {
                         int total = compareStrings(firstList, secondList, currentPhraseCopied);
 
                         matrix[firstDictIndex][secondDictIndex] = total;
-                        if(total> 50){
+                        iterations +=1;
 
-                        }
                     }
 
                 }
@@ -215,49 +229,100 @@ public class parseDocuments {
 
     }
 
-    private void insertSort(outputCell newTopCopier){
+    List<outputCell> cheats = new ArrayList<>();
+    public void findTopCheaters(){
+        if(topNum>numFiles*numFiles){
+            System.out.println("Error: Requesting too many cheaters.");
+            return;
+        }
+        int min = 0;
+        int xcoord = 0;
+        int ycoord = 0;
+        while(cheats.size()<topNum){
+            int cellValue = matrix[xcoord][ycoord];
+            cheats.add(new outputCell(xcoord,ycoord,cellValue));
+            if(cellValue>min)
+                min = cellValue;
 
-        int z = 0;
-        while(newTopCopier.samePhraseCount>topCopiers.get(z+1).samePhraseCount && z < topCopiers.size()-2){
-            topCopiers.set(z, topCopiers.get(z + 1));
-            z = z + 1;
+            if(xcoord==numFiles-1)
+            {ycoord++; xcoord = 0;}
+            else
+                xcoord++;
 
         }
+        Collections.sort(cheats);
 
-
-    }
-
-    private int checkCombo(String name1, String name2){
-        for(int z = 0; z < holdingList.size(); z++){
-            outputCell tmp = holdingList.get(z);
-            if(tmp.name1.equals(name1) && tmp.name2.equals(name2)){
-                return z;
-            }
-        }
-        return -1;
-    }
-
-    private void sortList(ArrayList<outputCell> list){
-        for(int z = 0; z < list.size()-1; z = z + 1){
-            for(int j = 0; j < list.size()-z-1; j = j + 1) {
-                if (list.get(j).samePhraseCount > list.get(j + 1).samePhraseCount) {
-                    outputCell tmp = list.get(j);
-                    list.set(j, list.get(j + 1));
-                    list.set(j + 1, tmp);
+        for(int x = xcoord; x<numFiles; x++){
+            for(int y = ycoord; y<numFiles; y++){
+                int cellValue = matrix[x][y];
+                if (min < cellValue) {
+                    cheats.add(new outputCell(x,y,cellValue));
+                    Collections.sort(cheats);
+                    cheats.remove(0);
                 }
             }
         }
+        System.out.println(cheats);
     }
 
-    private void checkList(outputCell possibleCell){
-        for(int z = 0; z < holdingList.size(); z++){
-            outputCell tmp = holdingList.get(z);
-            if(false){
+    /*
+    private int insertValue(int value){
+        for(int z = topCheaters.size()-1; z > -1; z--){
+            if(list.get(z)<value){
+
             }
         }
-        return ;
+        return 0;
     }
+    */
 
+    /*
+    boolean flag = false;
+
+    private void addValue(int firstDictIndex, int secondDictIndex, int total) {
+
+
+        ArrayList<Integer> tmp = new ArrayList<>();
+        tmp.add(0, firstDictIndex);
+        tmp.add(1,secondDictIndex);
+
+
+        //Check if Pair is already amongst Top Cheaters
+        Iterator it = topCheaters.entrySet().iterator();
+        while(it.hasNext()) {
+            HashMap.Entry coord = (HashMap.Entry) it.next();
+            if (tmp.equals(coord.getValue())) {
+                it.remove();
+                topCheaters.put(total,tmp);
+                return;
+            }
+        }
+        // Current Pair is not already in Top Cheaters
+        if(topCheaters.size() < topNum){
+            topCheaters.put(total,tmp);
+            if(min>total){
+                min = total;
+            }
+
+        } else if(!flag) {
+            flag = true;
+            list.addAll(topCheaters.keySet());
+            list.sort(Comparator.naturalOrder());
+            System.out.println(list);
+        } else{
+            //This is what is suppose to happen when need to check if total is greater than all other total so far
+            if(total>min){
+                list.remove(0);
+                list.add(total);
+                list.sort(Comparator.naturalOrder());
+                topCheaters.remove(min);
+                topCheaters.put(total,tmp);
+                min = list.get(0);
+                System.out.println(list);
+            }
+        }
+    }
+*/
 
     /**
 
@@ -319,7 +384,6 @@ public class parseDocuments {
     }
 
     */
-
     private int compareStrings(ArrayList<String> firstList, ArrayList<String> secondList, int samePhrase) {
         for(int aa = 0; aa < firstList.size(); aa += N-1){
             for(int bb = 0; bb < secondList.size(); bb += N-1){
@@ -327,12 +391,16 @@ public class parseDocuments {
                 for(int z = 0; z < N-1; z++){
                     if(firstList.get(aa+z).equals(secondList.get(bb+z))){
                         count = count + 1;
+                    }else{
+                        break;
                     }
                 }
 
                 if(count == (N-1)){
                     samePhrase = samePhrase + 1;
+
                     /*
+                    System.out.println("-----------------------------------------------------------------------------");
                     System.out.println("Strings Matched.");
                     System.out.println("List 1: " + firstList.get(aa) + " " + firstList.get(aa+ 1) + " " +
                             " " + firstList.get(aa + 2) + " " + firstList.get(aa + 3) + " " +
@@ -340,11 +408,9 @@ public class parseDocuments {
                     System.out.println("List 2: " + secondList.get(bb) + " " + secondList.get(bb+ 1) + " " +
                             " " + secondList.get(bb + 2) + " " + secondList.get(bb + 3) + " " +
                             secondList.get(bb + 4));
+                    System.out.println("-----------------------------------------------------------------------------");
                     */
-
                 }
-
-
             }
         }
         return samePhrase;
